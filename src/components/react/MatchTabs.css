@@ -1,0 +1,45 @@
+.match-tabs-container {
+  width: 100%;
+}
+
+.tabs-header {
+  display: flex;
+  border-bottom: 1px solid #dee2e6;
+  background-color: #f8f9fa;
+  overflow-x: auto;
+}
+
+.tab-button {
+  padding: 1rem 1.5rem;
+  border: none;
+  background: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab-button:hover {
+  background-color: #e9ecef;
+}
+
+.tab-button.active {
+  border-bottom: 3px solid #1a2a6c;
+  color: #1a2a6c;
+}
+
+.tab-content {
+  padding: 1.5rem;
+  min-height: 300px;
+}
+
+@media (max-width: 576px) {
+  .tabs-header {
+    flex-wrap: nowrap;
+  }
+  
+  .tab-button {
+    padding: 1rem 1rem;
+    font-size: 0.9rem;
+  }
+}

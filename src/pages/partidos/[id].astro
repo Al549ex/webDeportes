@@ -1,0 +1,323 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import MatchTabs from '../../components/react/MatchTabs';
+import { getMatchDetails } from '../../services/footballApiService';
+
+// Obtener el ID del partido de los parámetros
+const { id } = Astro.params;
+
+// Obtener los datos del partido
+let matchData = null;
+let error = null;
+
+try {
+  if (id) {
+    const response = await getMatchDetails(id);
+    matchData = response.match;
+  }
+} catch (e) {
+  console.error("Error al cargar los detalles del partido:", e);
+  error = "No se pudieron cargar los detalles del partido";
+}
+
+// Si no hay datos, redireccionar o mostrar error
+if (!matchData && !error) {
+  error = "Partido no encontrado";
+}
+
+// Formatear fecha del partido
+const formatMatchDate = (dateString) => {
+  if (!dateString) return "Fecha no disponible";
+  
+  const date = new Date(dateString);
+  return date.toLocaleDateString('es-ES', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+// Determinar estado del partido
+const getMatchStatus = (match) => {
+  if (!match) return { label: "No disponible", class: "unknown" };
+  
+  const status = match.fixture?.status?.short || "";
+  
+  if (status === "FT") return { label: "Finalizado", class: "finished" };
+  if (status === "NS") return { label: "Próximamente", class: "upcoming" };
+  if (status === "HT") return { label: "Descanso", class: "live" };
+  if (status === "1H" || status === "2H") return { label: "En directo", class: "live" };
+  
+  return { label: status, class: "unknown" };
+};
+
+const matchStatus = getMatchStatus(matchData);
+---
+
+<MainLayout title={matchData ? `${matchData.teams.home.name} vs ${matchData.teams.away.name} | FútbolStats` : "Detalles del partido | FútbolStats"}>
+  <div class="match-detail-page">
+    {error ? (
+      <div class="error-container">
+        <h2>Error</h2>
+        <p>{error}</p>
+        <a href="/partidos" class="back-link">Volver a la lista de partidos</a>
+      </div>
+    ) : (
+      <div class="container">
+        <div class="match-header">
+          <div class="match-competition">
+            <img 
+              src={matchData.league?.logo || '/assets/league-placeholder.png'} 
+              alt={matchData.league?.name}
+              width="30"
+              height="30"
+              onerror="this.src='/assets/league-placeholder.png';"
+            />
+            <span>{matchData.league?.name}</span>
+          </div>
+          
+          <div class="match-status-badge" class:list={[matchStatus.class]}>
+            {matchStatus.label}
+          </div>
+          
+          <div class="match-date">
+            {formatMatchDate(matchData.fixture?.date)}
+          </div>
+        </div>
+        
+        <div class="match-teams-container">
+          <div class="match-teams">
+            <div class="team home-team">
+              <div class="team-logo">
+                <img 
+                  src={matchData.teams?.home?.logo} 
+                  alt={matchData.teams?.home?.name}
+                  onerror="this.src='/assets/team-placeholder.png';"
+                />
+              </div>
+              <h2>{matchData.teams?.home?.name}</h2>
+            </div>
+            
+            <div class="match-score">
+              <span class="score-number">{matchData.goals?.home ?? "-"}</span>
+              <span class="score-divider">:</span>
+              <span class="score-number">{matchData.goals?.away ?? "-"}</span>
+            </div>
+            
+            <div class="team away-team">
+              <div class="team-logo">
+                <img 
+                  src={matchData.teams?.away?.logo} 
+                  alt={matchData.teams?.away?.name}
+                  onerror="this.src='/assets/team-placeholder.png';"
+                />
+              </div>
+              <h2>{matchData.teams?.away?.name}</h2>
+            </div>
+          </div>
+        </div>
+        
+        <div class="match-venue">
+          <div class="venue-info">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt" viewBox="0 0 16 16">
+              <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"/>
+              <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+            </svg>
+            <span>{matchData.fixture?.venue?.name || "Estadio no especificado"}</span>
+          </div>
+        </div>
+        
+        <div class="match-tabs">
+          <MatchTabs matchId={id} match={matchData} client:load />
+        </div>
+        
+        <div class="related-matches">
+          <h3>Otros partidos que te pueden interesar</h3>
+          <div class="related-matches-grid">
+            <!-- Aquí irían partidos relacionados del mismo equipo o liga -->
+            <p class="info-message">Próximamente - Partidos relacionados</p>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+</MainLayout>
+
+<style>
+  .match-detail-page {
+    padding: 2rem 0;
+  }
+  
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  
+  .match-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .match-competition {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .match-competition img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+  }
+  
+  .match-status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+  }
+  
+  .match-status-badge.finished {
+    background-color: #e9ecef;
+    color: #495057;
+  }
+  
+  .match-status-badge.upcoming {
+    background-color: #cff4fc;
+    color: #055160;
+  }
+  
+  .match-status-badge.live {
+    background-color: #f8d7da;
+    color: #842029;
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.8; }
+    100% { opacity: 1; }
+  }
+  
+  .match-date {
+    color: #6c757d;
+    font-size: 0.95rem;
+  }
+  
+  .match-teams-container {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .match-teams {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40%;
+    text-align: center;
+  }
+  
+  .team-logo img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 1rem;
+  }
+  
+  .team h2 {
+    font-size: 1.25rem;
+    margin: 0;
+  }
+  
+  .match-score {
+    display: flex;
+    align-items: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+  }
+  
+  .score-divider {
+    margin: 0 0.5rem;
+    color: #adb5bd;
+  }
+  
+  .match-venue {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  
+  .venue-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #fff;
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  
+  .match-tabs {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  
+  .related-matches h3 {
+    margin-bottom: 1.5rem;
+  }
+  
+  .related-matches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .info-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #6c757d;
+    padding: 2rem;
+  }
+  
+  .error-container {
+    max-width: 500px;
+    margin: 3rem auto;
+    text-align: center;
+  }
+  
+  .back-link {
+    display: inline-block;
+    margin-top: 1rem;
+    color: #1a2a6c;
+    text-decoration: none;
+  }
+  
+  @media (max-width: 768px) {
+    .match-teams {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .team {
+      width: 100%;
+    }
+  }
+</style>
