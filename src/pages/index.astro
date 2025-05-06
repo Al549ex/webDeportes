@@ -1,16 +1,189 @@
 ---
+import MainLayout from '../layouts/MainLayout.astro';
+import { getMockUpcomingMatches, getMockRecentMatches } from '../services/mockDataService';
 
+// Obtener partidos próximos y recientes usando los mocks
+const upcomingMatches = getMockUpcomingMatches(5).response;
+const recentMatches = getMockRecentMatches(3).response;
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<MainLayout title="FútbolStats - Estadísticas y predicciones deportivas">
+  <section class="bg-gradient-to-r from-primary to-secondary text-white py-16">
+    <div class="container mx-auto px-4 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold mb-4">FútbolStats</h1>
+      <p class="text-xl md:text-2xl opacity-90 mb-8">Tu portal de estadísticas y predicciones deportivas</p>
+      <a href="/equipos" class="inline-block bg-white text-primary hover:bg-gray-100 font-bold py-3 px-6 rounded-full transition-all transform hover:-translate-y-1 hover:shadow-lg">
+        Explorar Equipos
+      </a>
+    </div>
+  </section>
+  
+  <section class="py-12">
+    <div class="container mx-auto px-4">
+      <h2 class="text-2xl md:text-3xl font-bold text-center mb-8">Próximos partidos destacados</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {upcomingMatches.length === 0 ? (
+          <p class="text-center text-gray-500 col-span-full py-8">No hay próximos partidos para mostrar</p>
+        ) : (
+          upcomingMatches.map(match => (
+            <div class="bg-white rounded-lg shadow-card hover:shadow-hover transition-shadow p-6">
+              <div class="text-gray-500 text-sm mb-4">
+                {new Date(match.fixture.date).toLocaleDateString('es-ES', {
+                  weekday: 'short',
+                  day: '2-digit',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </div>
+              <div class="flex justify-between items-center mb-6">
+                <div class="team flex flex-col items-center w-2/5 text-center">
+                  <img 
+                    src={match.teams.home.logo} 
+                    alt={match.teams.home.name}
+                    class="w-12 h-12 object-contain mb-2"
+                    loading="lazy"
+                    onerror="this.src='/assets/team-placeholder.png';"
+                  />
+                  <span class="font-medium text-sm">{match.teams.home.name}</span>
+                </div>
+                <div class="match-vs font-bold text-gray-400">VS</div>
+                <div class="team flex flex-col items-center w-2/5 text-center">
+                  <img 
+                    src={match.teams.away.logo} 
+                    alt={match.teams.away.name}
+                    class="w-12 h-12 object-contain mb-2"
+                    loading="lazy"
+                    onerror="this.src='/assets/team-placeholder.png';"
+                  />
+                  <span class="font-medium text-sm">{match.teams.away.name}</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between border-t border-gray-100 pt-4">
+                <div class="text-xs text-gray-500 flex items-center">
+                  <img 
+                    src={match.league.logo} 
+                    alt={match.league.name}
+                    class="w-5 h-5 mr-1"
+                    loading="lazy"
+                    onerror="this.src='/assets/league-placeholder.png';"
+                  />
+                  <span>{match.league.name}</span>
+                </div>
+                <a href={`/partidos/${match.fixture.id}`} class="text-primary hover:text-secondary text-sm font-medium transition-colors">
+                  Ver detalles →
+                </a>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  </section>
+  
+  <section class="py-12 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <h2 class="text-2xl md:text-3xl font-bold text-center mb-8">Resultados recientes</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {recentMatches.length === 0 ? (
+          <p class="text-center text-gray-500 col-span-full py-8">No hay resultados recientes para mostrar</p>
+        ) : (
+          recentMatches.map(match => (
+            <div class="bg-white rounded-lg shadow-card hover:shadow-hover transition-shadow p-6 border-l-4 border-primary">
+              <div class="text-gray-500 text-sm mb-4">
+                {new Date(match.fixture.date).toLocaleDateString('es-ES', {
+                  weekday: 'short',
+                  day: '2-digit',
+                  month: 'short'
+                })}
+              </div>
+              <div class="flex justify-between items-center mb-6">
+                <div class="team flex flex-col items-center w-2/5 text-center">
+                  <img 
+                    src={match.teams.home.logo} 
+                    alt={match.teams.home.name}
+                    class="w-12 h-12 object-contain mb-2"
+                    loading="lazy"
+                    onerror="this.src='/assets/team-placeholder.png';"
+                  />
+                  <span class="font-medium text-sm">{match.teams.home.name}</span>
+                </div>
+                <div class="match-result px-4 py-2 bg-gray-50 rounded-lg font-bold">
+                  {match.goals.home} - {match.goals.away}
+                </div>
+                <div class="team flex flex-col items-center w-2/5 text-center">
+                  <img 
+                    src={match.teams.away.logo} 
+                    alt={match.teams.away.name}
+                    class="w-12 h-12 object-contain mb-2"
+                    loading="lazy"
+                    onerror="this.src='/assets/team-placeholder.png';"
+                  />
+                  <span class="font-medium text-sm">{match.teams.away.name}</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between border-t border-gray-100 pt-4">
+                <div class="text-xs text-gray-500 flex items-center">
+                  <img 
+                    src={match.league.logo} 
+                    alt={match.league.name}
+                    class="w-5 h-5 mr-1"
+                    loading="lazy"
+                    onerror="this.src='/assets/league-placeholder.png';"
+                  />
+                  <span>{match.league.name}</span>
+                </div>
+                <a href={`/partidos/${match.fixture.id}`} class="text-primary hover:text-secondary text-sm font-medium transition-colors">
+                  Ver resumen →
+                </a>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      
+      <div class="text-center mt-8">
+        <a href="/partidos" class="inline-block border border-gray-300 hover:border-primary text-gray-700 hover:text-primary font-medium rounded-full px-6 py-2 transition-colors">
+          Ver todos los partidos
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <section class="py-12">
+    <div class="container mx-auto px-4">
+      <h2 class="text-2xl md:text-3xl font-bold text-center mb-8">Explora nuestras funcionalidades</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow-card hover:shadow-hover transition-all transform hover:-translate-y-1 text-center">
+          <div class="text-4xl mb-4">📊</div>
+          <h3 class="text-xl font-bold mb-3 text-primary">Estadísticas de jugadores</h3>
+          <p class="text-gray-600 mb-6">Analiza el rendimiento de tus jugadores favoritos con datos detallados sobre goles, asistencias y más.</p>
+          <a href="/jugadores" class="text-primary hover:text-secondary font-medium inline-block border-b-2 border-primary hover:border-secondary transition-colors">
+            Ver jugadores
+          </a>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-card hover:shadow-hover transition-all transform hover:-translate-y-1 text-center">
+          <div class="text-4xl mb-4">⚽</div>
+          <h3 class="text-xl font-bold mb-3 text-primary">Equipos en detalle</h3>
+          <p class="text-gray-600 mb-6">Toda la información sobre los equipos: formaciones, resultados históricos y rendimiento actual.</p>
+          <a href="/equipos" class="text-primary hover:text-secondary font-medium inline-block border-b-2 border-primary hover:border-secondary transition-colors">
+            Ver equipos
+          </a>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-card hover:shadow-hover transition-all transform hover:-translate-y-1 text-center">
+          <div class="text-4xl mb-4">🔮</div>
+          <h3 class="text-xl font-bold mb-3 text-primary">Predicciones de partidos</h3>
+          <p class="text-gray-600 mb-6">Descubre nuestras predicciones basadas en análisis estadísticos avanzados y tendencias históricas.</p>
+          <a href="/predicciones" class="text-primary hover:text-secondary font-medium inline-block border-b-2 border-primary hover:border-secondary transition-colors">
+            Ver predicciones
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</MainLayout>
