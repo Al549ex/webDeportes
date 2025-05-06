@@ -1,27 +1,10 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
-import { getUpcomingMatches, getRecentMatches } from '../services/footballApiService';
+import { getMockUpcomingMatches, getMockRecentMatches } from '../services/mockDataService';
 
-// Obtener tanto partidos próximos como recientes
-let upcomingMatches = [];
-let recentMatches = [];
-let error = null;
-
-try {
-  // Cargar datos en paralelo para mejor rendimiento
-  const [upcomingData, recentData] = await Promise.all([
-    getUpcomingMatches(5),
-    getRecentMatches(3)
-  ]);
-  
-  upcomingMatches = upcomingData.response || [];
-  recentMatches = recentData.response || [];
-  
-  console.log(`✅ Cargados ${upcomingMatches.length} partidos próximos y ${recentMatches.length} recientes`);
-} catch (e) {
-  console.error("Error al cargar los partidos:", e);
-  error = "No se pudieron cargar los datos de partidos";
-}
+// Obtener tanto partidos próximos como recientes usando los mocks
+const upcomingMatches = getMockUpcomingMatches(5).response;
+const recentMatches = getMockRecentMatches(3).response;
 ---
 
 <MainLayout title="FútbolStats - Estadísticas y predicciones deportivas">
@@ -33,16 +16,14 @@ try {
         <a href="/equipos" class="cta-button">Explorar Equipos</a>
       </div>
     </section>
-
-    {error && <div class="error-banner">{error}</div>}
   
     <section class="featured-matches">
       <div class="container">
         <h2>Próximos partidos destacados</h2>
         
         <div class="matches-grid">
-          {upcomingMatches.length === 0 && !error ? (
-            <p class="loading-message">Cargando próximos partidos...</p>
+          {upcomingMatches.length === 0 ? (
+            <p class="loading-message">No hay próximos partidos para mostrar</p>
           ) : (
             upcomingMatches.map(match => (
               <div class="match-card">
@@ -98,8 +79,8 @@ try {
         <h2>Resultados recientes</h2>
         
         <div class="matches-grid">
-          {recentMatches.length === 0 && !error ? (
-            <p class="loading-message">Cargando resultados recientes...</p>
+          {recentMatches.length === 0 ? (
+            <p class="loading-message">No hay resultados recientes para mostrar</p>
           ) : (
             recentMatches.map(match => (
               <div class="match-card result-card">
@@ -390,15 +371,6 @@ try {
     grid-column: 1 / -1;
     padding: 2rem;
     color: #666;
-  }
-  
-  .error-banner {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 1rem;
-    text-align: center;
-    margin: 1rem 0;
-    border-radius: 4px;
   }
   
   .view-more {

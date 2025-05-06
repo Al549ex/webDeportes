@@ -1,26 +1,26 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import MatchTabs from '../../components/react/MatchTabs';
-import { getMatchDetails } from '../../services/footballApiService';
+import { getMockMatchDetails } from '../../services/mockDataService';
 
 // Obtener el ID del partido de los parámetros
 const { id } = Astro.params;
 
-// Obtener los datos del partido
+// Obtener los datos del partido usando el mock
 let matchData = null;
 let error = null;
 
 try {
   if (id) {
-    const response = await getMatchDetails(id);
-    matchData = response.match;
+    const response = getMockMatchDetails(id);
+    matchData = response ? response.match : null;
   }
 } catch (e) {
   console.error("Error al cargar los detalles del partido:", e);
   error = "No se pudieron cargar los detalles del partido";
 }
 
-// Si no hay datos, redireccionar o mostrar error
+// Si no hay datos, mostrar error
 if (!matchData && !error) {
   error = "Partido no encontrado";
 }
@@ -54,7 +54,7 @@ const getMatchStatus = (match) => {
   return { label: status, class: "unknown" };
 };
 
-const matchStatus = getMatchStatus(matchData);
+const matchStatus = matchData ? getMatchStatus(matchData) : { label: "No disponible", class: "unknown" };
 ---
 
 <MainLayout title={matchData ? `${matchData.teams.home.name} vs ${matchData.teams.away.name} | FútbolStats` : "Detalles del partido | FútbolStats"}>

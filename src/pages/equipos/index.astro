@@ -1,27 +1,11 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
-import { getTeamsByCompetition } from '../../services/footballApiService';
-import { COMPETITIONS } from '../../services/apiConfig';
+import { getMockTeamsByCompetition } from '../../services/mockDataService';
+import { COMPETITIONS } from '../../services/competitionIds';
 
-// Obtener equipos de La Liga
-let laLigaTeams = [];
-let premierLeagueTeams = [];
-let error = null;
-
-try {
-  // Cargar equipos de dos competiciones principales en paralelo
-  const [laLigaResponse, premierResponse] = await Promise.all([
-    getTeamsByCompetition(COMPETITIONS.LA_LIGA),
-    getTeamsByCompetition(COMPETITIONS.PREMIER_LEAGUE)
-  ]);
-  
-  laLigaTeams = laLigaResponse.teams || [];
-  premierLeagueTeams = premierResponse.teams || [];
-  
-} catch (e) {
-  console.error("Error al cargar los equipos:", e);
-  error = "No se pudieron cargar los datos de equipos";
-}
+// Obtener equipos de ejemplo
+const laLigaTeams = getMockTeamsByCompetition(COMPETITIONS.LA_LIGA).teams;
+const premierLeagueTeams = getMockTeamsByCompetition(COMPETITIONS.PREMIER_LEAGUE).teams;
 
 // Agrupa equipos por competición para mejor visualización
 const competitions = [
@@ -46,8 +30,6 @@ const competitions = [
         <p>Explora todos los equipos y sus estadísticas</p>
       </div>
     </section>
-
-    {error && <div class="error-banner">{error}</div>}
     
     <section class="teams-section">
       <div class="container">
@@ -56,7 +38,7 @@ const competitions = [
             <h2 class="competition-title">{competition.name}</h2>
             
             {competition.teams.length === 0 ? (
-              <p class="loading-message">Cargando equipos...</p>
+              <p class="loading-message">No hay equipos para mostrar</p>
             ) : (
               <div class="teams-grid">
                 {competition.teams.map(team => (
@@ -184,15 +166,6 @@ const competitions = [
   .team-card:hover .team-view {
     background-color: #1a2a6c;
     color: white;
-  }
-  
-  .error-banner {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 1rem;
-    text-align: center;
-    margin: 1rem 0;
-    border-radius: 4px;
   }
   
   .loading-message {
